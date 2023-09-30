@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using Dapper;
 using MySqlConnector;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.Legacy;
 using osu.Game.Rulesets;
@@ -84,7 +85,7 @@ namespace osu.Server.DifficultyCalculator
 
         private void processDifficulty(int beatmapId, WorkingBeatmap beatmap, Ruleset ruleset, MySqlConnection conn)
         {
-            foreach (var attribute in ruleset.CreateDifficultyCalculator(beatmap).CalculateAllLegacyCombinations())
+            foreach (var attribute in ruleset.CreateDifficultyCalculator(beatmap).Calculate(ArraySegment<Mod>.Empty).Yield())
             {
                 if (dryRun)
                     continue;
