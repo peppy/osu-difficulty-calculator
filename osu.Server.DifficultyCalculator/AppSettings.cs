@@ -42,6 +42,7 @@ namespace osu.Server.DifficultyCalculator
         {
             INSERT_BEATMAPS = Environment.GetEnvironmentVariable("INSERT_BEATMAPS") == "1";
             SKIP_INSERT_ATTRIBUTES = Environment.GetEnvironmentVariable("SKIP_INSERT_ATTRIBUTES") == "1";
+            SKIP_INSERT_ATTRIBUTES = Environment.GetEnvironmentVariable("SKIP_INSERT_ATTRIBUTES") == "1";
             ALLOW_DOWNLOAD = Environment.GetEnvironmentVariable("ALLOW_DOWNLOAD") == "1";
             SAVE_DOWNLOADED = Environment.GetEnvironmentVariable("SAVE_DOWNLOADED") == "1";
 

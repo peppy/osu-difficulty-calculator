@@ -91,40 +91,40 @@ namespace osu.Server.DifficultyCalculator
 
                 LegacyMods legacyMods = ruleset.ConvertToLegacyMods(attribute.Mods);
 
-                conn.Execute(
-                    "INSERT INTO `osu_beatmap_difficulty` (`beatmap_id`, `mode`, `mods`, `diff_unified`) "
-                    + "VALUES (@BeatmapId, @Mode, @Mods, @Diff) "
-                    + "ON DUPLICATE KEY UPDATE `diff_unified` = @Diff",
-                    new
-                    {
-                        BeatmapId = beatmapId,
-                        Mode = ruleset.RulesetInfo.OnlineID,
-                        Mods = (int)legacyMods,
-                        Diff = attribute.StarRating
-                    });
+                // conn.Execute(
+                //     "INSERT INTO `osu_beatmap_difficulty` (`beatmap_id`, `mode`, `mods`, `diff_unified`) "
+                //     + "VALUES (@BeatmapId, @Mode, @Mods, @Diff) "
+                //     + "ON DUPLICATE KEY UPDATE `diff_unified` = @Diff",
+                //     new
+                //     {
+                //         BeatmapId = beatmapId,
+                //         Mode = ruleset.RulesetInfo.OnlineID,
+                //         Mods = (int)legacyMods,
+                //         Diff = attribute.StarRating
+                //     });
 
-                if (!AppSettings.SKIP_INSERT_ATTRIBUTES)
-                {
-                    var parameters = new List<object>();
-
-                    foreach (var mapping in attribute.ToDatabaseAttributes())
-                    {
-                        parameters.Add(new
-                        {
-                            BeatmapId = beatmapId,
-                            Mode = ruleset.RulesetInfo.OnlineID,
-                            Mods = (int)legacyMods,
-                            Attribute = mapping.attributeId,
-                            Value = Convert.ToSingle(mapping.value)
-                        });
-                    }
-
-                    conn.Execute(
-                        "INSERT INTO `osu_beatmap_difficulty_attribs` (`beatmap_id`, `mode`, `mods`, `attrib_id`, `value`) "
-                        + "VALUES (@BeatmapId, @Mode, @Mods, @Attribute, @Value) "
-                        + "ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)",
-                        parameters.ToArray());
-                }
+                // if (!AppSettings.SKIP_INSERT_ATTRIBUTES)
+                // {
+                //     var parameters = new List<object>();
+                //
+                //     foreach (var mapping in attribute.ToDatabaseAttributes())
+                //     {
+                //         parameters.Add(new
+                //         {
+                //             BeatmapId = beatmapId,
+                //             Mode = ruleset.RulesetInfo.OnlineID,
+                //             Mods = (int)legacyMods,
+                //             Attribute = mapping.attributeId,
+                //             Value = Convert.ToSingle(mapping.value)
+                //         });
+                //     }
+                //
+                //     conn.Execute(
+                //         "INSERT INTO `osu_beatmap_difficulty_attribs` (`beatmap_id`, `mode`, `mods`, `attrib_id`, `value`) "
+                //         + "VALUES (@BeatmapId, @Mode, @Mods, @Attribute, @Value) "
+                //         + "ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)",
+                //         parameters.ToArray());
+                // }
 
                 if (legacyMods == LegacyMods.None && ruleset.RulesetInfo.Equals(beatmap.BeatmapInfo.Ruleset))
                 {
@@ -154,7 +154,7 @@ namespace osu.Server.DifficultyCalculator
                     else
                     {
                         conn.Execute(
-                            "UPDATE `osu_beatmaps` SET `difficultyrating` = @Diff, `diff_approach` = @AR, `diff_overall` = @OD, `diff_drain` = @HP, `diff_size` = @CS, `bpm` = @BPM , `max_combo` = @MaxCombo "
+                            "UPDATE `osu_beatmaps` SET `max_combo` = @MaxCombo "
                             + "WHERE `beatmap_id` = @BeatmapId",
                             param);
                     }
