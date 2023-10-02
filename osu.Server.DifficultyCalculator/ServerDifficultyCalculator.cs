@@ -85,7 +85,7 @@ namespace osu.Server.DifficultyCalculator
 
         private void processDifficulty(int beatmapId, WorkingBeatmap beatmap, Ruleset ruleset, MySqlConnection conn)
         {
-            foreach (var attribute in ruleset.CreateDifficultyCalculator(beatmap).Calculate(ArraySegment<Mod>.Empty).Yield())
+            foreach (var attribute in ruleset.CreateDifficultyCalculator(beatmap).Calculate(new[] { ruleset.CreateMod<ModClassic>() }).Yield())
             {
                 if (dryRun)
                     continue;
