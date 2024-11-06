@@ -11,6 +11,7 @@ namespace osu.Server.DifficultyCalculator
     [Command]
     [Subcommand(typeof(AllCommand))]
     [Subcommand(typeof(FilesCommand))]
+    [Subcommand(typeof(SqlCommand))]
     [Subcommand(typeof(BeatmapsCommand))]
     [Subcommand(typeof(SinceCommand))]
     public class Program
