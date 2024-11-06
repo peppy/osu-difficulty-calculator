@@ -10,7 +10,7 @@ namespace osu.Server.DifficultyCalculator.Commands
     [Command(Name = "beatmaps", Description = "Calculates the difficulty of specific beatmaps.")]
     public class BeatmapsCommand : CalculatorCommand
     {
-        [Argument(0, "beatmap", Description = "One or more beatmap ids to calculate the difficulty for.")]
+        [Argument(0, "beatmap", Description = "One or more beatmap ids to calculate the difficulty for, space separated.")]
         public int[] BeatmapIds { get; set; } = Array.Empty<int>();
 
         protected override IEnumerable<int> GetBeatmaps() => BeatmapIds;
