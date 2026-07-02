@@ -80,9 +80,9 @@ namespace osu.Server.DifficultyCalculator
             {
                 conn.Execute(
                     """
-                     INSERT INTO `bss_process_queue` (`beatmapset_id`, `status`)
-                     VALUES ((SELECT `beatmapset_id` FROM `osu_beatmaps` WHERE `beatmap_id` = @beatmap_id), 2)
-                     """,
+                    INSERT INTO `bss_process_queue` (`beatmapset_id`, `status`)
+                    VALUES ((SELECT `beatmapset_id` FROM `osu_beatmaps` WHERE `beatmap_id` = @beatmap_id), 2)
+                    """,
                     new
                     {
                         beatmap_id = beatmapId,
@@ -184,6 +184,8 @@ namespace osu.Server.DifficultyCalculator
 
         private void processDifficulty(ProcessableItem item, MySqlConnection conn)
         {
+            var parameters = new List<object>();
+
             foreach (var attribute in item.Ruleset.CreateDifficultyCalculator(item.WorkingBeatmap).CalculateAllLegacyCombinations())
             {
                 if (dryRun)
@@ -205,8 +207,6 @@ namespace osu.Server.DifficultyCalculator
 
                 if (item.Ranked && !AppSettings.SKIP_INSERT_ATTRIBUTES)
                 {
-                    var parameters = new List<object>();
-
                     foreach (var mapping in attribute.ToDatabaseAttributes())
                     {
                         parameters.Add(new
@@ -218,12 +218,6 @@ namespace osu.Server.DifficultyCalculator
                             Value = Convert.ToSingle(mapping.value)
                         });
                     }
-
-                    conn.Execute(
-                        "INSERT INTO `osu_beatmap_difficulty_attribs` (`beatmap_id`, `mode`, `mods`, `attrib_id`, `value`) "
-                        + "VALUES (@BeatmapId, @Mode, @Mods, @Attribute, @Value) "
-                        + "ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)",
-                        parameters.ToArray());
                 }
 
                 if (legacyMods == LegacyMods.None && item.Ruleset.RulesetInfo.Equals(item.WorkingBeatmap.BeatmapInfo.Ruleset))
@@ -277,6 +271,15 @@ namespace osu.Server.DifficultyCalculator
                             param);
                     }
                 }
+            }
+
+            if (parameters.Count > 0)
+            {
+                conn.Execute(
+                    "INSERT INTO `osu_beatmap_difficulty_attribs` (`beatmap_id`, `mode`, `mods`, `attrib_id`, `value`) "
+                    + "VALUES (@BeatmapId, @Mode, @Mods, @Attribute, @Value) "
+                    + "ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)",
+                    parameters.ToArray());
             }
         }
 
