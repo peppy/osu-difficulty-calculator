@@ -184,7 +184,8 @@ namespace osu.Server.DifficultyCalculator
 
         private void processDifficulty(ProcessableItem item, MySqlConnection conn)
         {
-            StringBuilder valuesText = new StringBuilder();
+            StringBuilder attribsValues = new StringBuilder();
+            StringBuilder difficultyValues = new StringBuilder();
 
             foreach (var attribute in item.Ruleset.CreateDifficultyCalculator(item.WorkingBeatmap).CalculateAllLegacyCombinations())
             {
@@ -193,23 +194,13 @@ namespace osu.Server.DifficultyCalculator
 
                 LegacyMods legacyMods = item.Ruleset.ConvertToLegacyMods(attribute.Mods);
 
-                conn.Execute(
-                    "INSERT INTO `osu_beatmap_difficulty` (`beatmap_id`, `mode`, `mods`, `diff_unified`) "
-                    + "VALUES (@BeatmapId, @Mode, @Mods, @Diff) "
-                    + "ON DUPLICATE KEY UPDATE `diff_unified` = @Diff",
-                    new
-                    {
-                        BeatmapId = item.BeatmapID,
-                        Mode = item.RulesetID,
-                        Mods = (int)legacyMods,
-                        Diff = attribute.StarRating
-                    });
+                difficultyValues.Append($"({item.BeatmapID}, {item.RulesetID}, {(int)legacyMods}, {attribute.StarRating}),");
 
                 if (item.Ranked && !AppSettings.SKIP_INSERT_ATTRIBUTES)
                 {
                     foreach (var mapping in attribute.ToDatabaseAttributes())
                     {
-                        valuesText.Append($"({item.BeatmapID}, {item.RulesetID}, {(int)legacyMods}, {mapping.attributeId}, {Convert.ToSingle(mapping.value)}),");
+                        attribsValues.Append($"({item.BeatmapID}, {item.RulesetID}, {(int)legacyMods}, {mapping.attributeId}, {Convert.ToSingle(mapping.value)}),");
                     }
                 }
 
@@ -266,11 +257,19 @@ namespace osu.Server.DifficultyCalculator
                 }
             }
 
-            if (valuesText.Length > 0)
+            if (difficultyValues.Length > 0)
+            {
+                conn.Execute(
+                    "INSERT INTO `osu_beatmap_difficulty` (`beatmap_id`, `mode`, `mods`, `diff_unified`) "
+                    + "VALUES " + difficultyValues.ToString().TrimEnd(',')
+                    + " ON DUPLICATE KEY UPDATE `diff_unified` = VALUES(`diff_unified`)");
+            }
+
+            if (attribsValues.Length > 0)
             {
                 conn.Execute(
                     "INSERT INTO `osu_beatmap_difficulty_attribs` (`beatmap_id`, `mode`, `mods`, `attrib_id`, `value`) "
-                    + "VALUES " + valuesText.ToString().TrimEnd(',')
+                    + "VALUES " + attribsValues.ToString().TrimEnd(',')
                     + " ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)");
             }
         }
