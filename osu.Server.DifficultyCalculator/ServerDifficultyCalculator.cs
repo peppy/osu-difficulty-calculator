@@ -184,7 +184,7 @@ namespace osu.Server.DifficultyCalculator
 
         private void processDifficulty(ProcessableItem item, MySqlConnection conn)
         {
-            var parameters = new List<object>();
+            StringBuilder valuesText = new StringBuilder();
 
             foreach (var attribute in item.Ruleset.CreateDifficultyCalculator(item.WorkingBeatmap).CalculateAllLegacyCombinations())
             {
@@ -209,14 +209,7 @@ namespace osu.Server.DifficultyCalculator
                 {
                     foreach (var mapping in attribute.ToDatabaseAttributes())
                     {
-                        parameters.Add(new
-                        {
-                            BeatmapId = item.BeatmapID,
-                            Mode = item.RulesetID,
-                            Mods = (int)legacyMods,
-                            Attribute = mapping.attributeId,
-                            Value = Convert.ToSingle(mapping.value)
-                        });
+                        valuesText.Append($"({item.BeatmapID}, {item.RulesetID}, {(int)legacyMods}, {mapping.attributeId}, {Convert.ToSingle(mapping.value)}),");
                     }
                 }
 
@@ -273,13 +266,12 @@ namespace osu.Server.DifficultyCalculator
                 }
             }
 
-            if (parameters.Count > 0)
+            if (valuesText.Length > 0)
             {
                 conn.Execute(
                     "INSERT INTO `osu_beatmap_difficulty_attribs` (`beatmap_id`, `mode`, `mods`, `attrib_id`, `value`) "
-                    + "VALUES (@BeatmapId, @Mode, @Mods, @Attribute, @Value) "
-                    + "ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)",
-                    parameters.ToArray());
+                    + "VALUES " + valuesText.ToString().TrimEnd(',')
+                    + " ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)");
             }
         }
 
